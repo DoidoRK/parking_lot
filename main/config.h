@@ -5,12 +5,10 @@
 #include "driver/gpio.h"
 
 //Parking lot settings
+#define PARKING_SPOT_QUANTITY   20
+#define VALUE_PER_TIME    20
 
 //GPIO settings
-#define CAR_ENTERED_BTN GPIO_NUM_13
-#define CAR_LEAVED_BTN GPIO_NUM_27
-#define PRINT_RECEIPT_BTN GPIO_NUM_25
-
-//FileSystem Settings
+#define CAR_ENTERED_BTN GPIO_NUM_0
 
 #endif  // _CONFIG_H_
