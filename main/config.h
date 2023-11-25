@@ -10,6 +10,7 @@
 #define GATE_OPEN_TIME  4000
 #define GATE_CLOSE_TIME 2000
 #define CAR_SPEED 500
+#define QUEUES_MAX_SIZE 10
 
 //GPIO settings
 #define CAR_ENTERED_BTN GPIO_NUM_0

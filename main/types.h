@@ -18,13 +18,13 @@ enum parking_slot_status {
 typedef struct car_struct {
     uint16_t time_parked;
     uint16_t entrance_time;
-    char plate[CAR_PLATE_LENGTH];
+    uint8_t plate[CAR_PLATE_LENGTH];
     uint8_t status;
 } car_t;
 
 typedef struct parking_slot_struct {
     uint8_t status;
-    car_t parked_car;
+    car_t *parked_car;
 } parking_slot_t;
 
 #endif  // _TYPES_H_
