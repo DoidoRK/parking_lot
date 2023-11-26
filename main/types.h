@@ -21,4 +21,12 @@ typedef struct parking_slot_struct {
     car_t parked_car;
 } parking_spot_t;
 
+typedef struct receipt_struct {
+    uint16_t entrance_time;
+    uint16_t exit_time;
+    uint32_t value;
+    uint16_t total_time;
+    uint8_t car_plate[CAR_PLATE_LENGTH];
+} receipt_t;
+
 #endif  // _TYPES_H_

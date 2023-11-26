@@ -17,7 +17,8 @@ uint16_t generateRandomTime(uint8_t max_time_seconds,uint8_t min_time_seconds) {
     uint16_t randomSeconds = rand() % (max_time_seconds - min_time_seconds + 1) + min_time_seconds;
 
     // Convert seconds to milliseconds
-    uint16_t randomMilliseconds = randomSeconds * 1000;
+    // uint16_t randomMilliseconds = randomSeconds * 1000;
+    uint16_t randomMilliseconds = 2000;
 
     return randomMilliseconds;
 }
@@ -80,6 +81,10 @@ int8_t findFirstEmptyParkingSlotIndex(parking_spot_t* parking_lot, size_t capaci
     }
     // No empty parking slot found
     return -1;
+}
+
+uint32_t calculateParkingFee(uint16_t entrance_time, uint16_t exit_time, uint16_t time_fee){
+    return (uint32_t)((exit_time - entrance_time)%1000 * time_fee % 1000);
 }
 
 #endif  // _UTILS_H_

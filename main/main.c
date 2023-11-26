@@ -18,7 +18,7 @@
 
 static const char *MAIN_TAG = "PARKING_SYSTEM";
 
-time_t globalSystemTime;    //Global time.
+uint16_t globalSystemTime;    //Global time.
 
 static QueueHandle_t gpio_evt_queue = NULL;
 static QueueHandle_t entrance_queue = NULL;
@@ -28,8 +28,9 @@ SemaphoreHandle_t parking_lot_semaphore;
 
 uint16_t total_cars = 0;
 uint8_t parked_cars = 0;
-uint32_t received_money = 0;
+uint32_t total_money = 0;
 car_t car_in_entrance_gate, car_in_exit_gate;
+receipt_t receipt;
 
 const parking_spot_t empty_parking_slot = {
     .status = EMPTY,
@@ -38,6 +39,7 @@ const parking_spot_t empty_parking_slot = {
         .plate = {32,32,32,32,32,32,32},
     },
 };
+
 const car_t empty_car = {
     .parking_spot = -1,
     .entrance_time = 0,
@@ -72,16 +74,20 @@ static void carTask(void *arg){
 }
 
 static void parkingLotTask(void *arg){
-    xSemaphoreTake(parking_lot_semaphore, portMAX_DELAY);
-    for (size i = 0; i < PARKING_LOT_CAPACITY; i++)
+    while (true)
     {
-        parked_cars = 0;
-        if(parking_lot[i].status == OCCUPIED){
-            parked_cars++;
+        xSemaphoreTake(parking_lot_semaphore, portMAX_DELAY);
+        for (size_t i = 0; i < PARKING_LOT_CAPACITY; i++)
+        {
+            parked_cars = 0;
+            if(parking_lot[i].status == OCCUPIED){
+                parked_cars++;
+            }
         }
+        xSemaphoreGive(parking_lot_semaphore);
+        globalSystemTime = time(NULL);
+        vTaskDelay(pdMS_TO_TICKS(PRINT_DELAY));
     }
-    xSemaphoreGive(parking_lot_semaphore);
-    vTaskDelay(pdMS_TO_TICKS(PRINT_DELAY));
 }
 
 static void gpioReadTask(void* arg){
@@ -124,6 +130,22 @@ static void entranceGateTask(void* arg){
     }
 }
 
+static void exitGateTask(void* arg){
+    while(true) {
+        if(xQueueReceive(exit_queue, &car_in_exit_gate, portMAX_DELAY)) {
+            receipt.entrance_time = car_in_exit_gate.entrance_time;
+            receipt.exit_time = time(NULL);
+            memcpy(receipt.car_plate, car_in_exit_gate.plate,CAR_PLATE_LENGTH*sizeof(uint8_t));
+            receipt.total_time = receipt.exit_time - receipt.entrance_time;
+            receipt.value = calculateParkingFee(car_in_exit_gate.entrance_time,receipt.exit_time, TIME_FEE); 
+            total_money += receipt.value;
+            vTaskDelay(pdMS_TO_TICKS(GATE_OPEN_TIME));
+            memcpy(&car_in_exit_gate, &empty_car, sizeof(car_t));
+            vTaskDelay(pdMS_TO_TICKS(GATE_CLOSE_TIME));
+        }
+    }
+}
+
 static void systemPrintTask(void* arg){
     uint8_t cars_in_entrance_queue = 0;
     uint8_t cars_in_exit_queue = 0;
@@ -159,9 +181,13 @@ static void systemPrintTask(void* arg){
             PARKING_LOT_CAPACITY,
             car_in_entrance_gate.plate,
             car_in_exit_gate.plate,
-            received_money,
+            globalSystemTime,
+            total_money,
             cars_in_entrance_queue,
-            cars_in_exit_queue
+            cars_in_exit_queue,
+            receipt.car_plate,
+            receipt.total_time,
+            receipt.value
         );
 
         printGate(0,1,"CANCELA DE ENTRADA",car_in_entrance_gate.plate,entrance_gate_is_empty);
@@ -203,5 +229,7 @@ void app_main(void)
 
     xTaskCreate(gpioReadTask, "gpioReadTask", 2048, NULL, 2, NULL);
     xTaskCreate(entranceGateTask, "entranceGateTask", 2048, NULL, 3, NULL);
+    xTaskCreate(parkingLotTask, "parkingLotTask", 2048, NULL, 4, NULL);
+    xTaskCreate(exitGateTask, "exitGateTask", 2048, NULL, 3, NULL);
     xTaskCreate(systemPrintTask, "systemPrintTask", 2048, NULL, 10, NULL);
 }
