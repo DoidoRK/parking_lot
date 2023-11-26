@@ -58,11 +58,11 @@ void initiateCar(car_t *car) {
 }
 
 // Function to calculate the number of free parking slots
-uint8_t countFreeParkingSlots(parking_slot_t parking_lot[PARKING_SLOT_MAXIMUM_CAPACITY]) {
+uint8_t countFreeParkingSlots(parking_slot_t parking_lot[PARKING_LOT_CAPACITY]) {
     uint8_t freeSlots = 0;
 
-    for (int i = 0; i < PARKING_SLOT_MAXIMUM_CAPACITY; ++i) {
-        if (parking_lot[i].status == EMPTY_SLOT) {
+    for (int i = 0; i < PARKING_LOT_CAPACITY; ++i) {
+        if (parking_lot[i].status == EMPTY_PARKING_SLOT) {
             freeSlots++;
         }
     }

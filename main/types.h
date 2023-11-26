@@ -5,7 +5,7 @@
 #define CAR_PLATE_LENGTH 9
 
 enum parking_slot_status {
-    EMPTY_SLOT,
+    EMPTY_PARKING_SLOT,
     OCCUPIED,
 };
 
