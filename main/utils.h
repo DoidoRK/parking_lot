@@ -33,8 +33,8 @@ uint8_t randomDigit() {
 }
 
 // Function to generate a random Brazilian-style car plate and return it as a character array
-void generateRandomCarPlate(uint8_t plate[CAR_PLATE_LENGTH]) {
-    snprintf((char*)plate, CAR_PLATE_LENGTH, "%c%c%c%c%c%c%c",
+void generateRandomCarPlate(uint8_t *plate,size_t car_plate_len) {
+    snprintf((char*)plate, car_plate_len, "%c%c%c%c%c%c%c",
              randomLetter(), randomLetter(), randomLetter(),
              randomDigit(),
              randomLetter(),
@@ -51,23 +51,35 @@ void initiateCar(car_t *car) {
     car->entrance_time = 0;
 
     // Generate a random car plate
-    generateRandomCarPlate(car->plate);
+    generateRandomCarPlate(car->plate, CAR_PLATE_LENGTH);
 
     // Generate a random time parked
     car->time_parked = generateRandomTime(MAX_TIME_SECONDS, MIN_TIME_SECONDS);
 }
 
 // Function to calculate the number of free parking slots
-uint8_t countFreeParkingSlots(parking_slot_t parking_lot[PARKING_LOT_CAPACITY]) {
+uint8_t countFreeParkingSlots(parking_spot_t* parking_lot, size_t capacity) {
     uint8_t freeSlots = 0;
 
-    for (int i = 0; i < PARKING_LOT_CAPACITY; ++i) {
-        if (parking_lot[i].status == EMPTY_PARKING_SLOT) {
+    for (int i = 0; i < capacity; ++i) {
+        if (parking_lot[i].status == EMPTY) {
             freeSlots++;
         }
     }
 
     return freeSlots;
+}
+
+// Function to find the index of the first empty parking slot
+int8_t findFirstEmptyParkingSlotIndex(parking_spot_t* parking_lot, size_t capacity) {
+    for (size_t i = 0; i < capacity; ++i) {
+        if (parking_lot[i].status == EMPTY) {
+            // Found an empty parking slot, return its index
+            return i;
+        }
+    }
+    // No empty parking slot found
+    return -1;
 }
 
 #endif  // _UTILS_H_

@@ -29,31 +29,85 @@ void printSystemTable(
         gotoxy(x,y+3);
         printf("TOTAL DE CARROS ATENDIDOS: %d", total_cars);
         gotoxy(x,y+4);
-        printf("CARRO NA CANCELA DE ENTRADA: %s", car_in_entrance_plate);
-        gotoxy(x,y+5);
         printf("CARROS NA FILA DE ENTRADA: %d", enter_queue_size);
-        gotoxy(x,y+6);
-        printf("CARRO NA CANCELA DE SAÍDA: %s", car_in_exit_plate);
-        gotoxy(x,y+7);
+        gotoxy(x,y+5);
         printf("CARROS NA FILA DE SAÍDA: %d", exit_queue_size);
 }
 
-// void printEntranceQueue(
-//     uint8_t x, uint8_t y,
-//     car_t entrance_queue[],
-//     car_t entrance_return_queue[],
-//     size_t queue_size,
-// ){
+void printGate( uint8_t x, uint8_t y, char* gate_name, uint8_t *car_plate, uint8_t is_empty){
+    if(is_empty){
+        setfontcolor(RED);
+    } else {
+        setfontcolor(GREEN);
+    }
+    gotoxy(x,y);
+    printf("╔════════════════════╗");
+    gotoxy(x,y+1);
+    printf("║ %s ║",gate_name);
+    gotoxy(x,y+2);
+    if (is_empty)
+    {
+        printf("║       -------      ║");
+    } else {
+        printf("║       %s      ║",car_plate);
+    }
+    gotoxy(x,y+3);
+    printf("╚════════════════════╝");
+    setfontcolor(WHITE);
+}
 
-// }
+void printParkingSpot(uint8_t x, uint8_t y, uint8_t *car_plate, uint8_t is_empty){
+    // bool is_empty =  EMPTY == parking_spot.status ? 1 : 0;
+    if(is_empty){
+        setfontcolor(GREEN);
+    } else {
+        setfontcolor(RED);
+    }
+    gotoxy(x,y);
+    printf("┌───────┐");
+    gotoxy(x,y+1);
+    if(is_empty){
+        printf("│-------│");
+    } else {
+        printf("│%s│",car_plate);
+    }
+    gotoxy(x,y+2);
+    printf("└───────┘");
+    setfontcolor(WHITE);
+}
 
-// void printParkingLot(){
 
-// }
-
-
-// void printExitQueue(){
-
-// }
+void printParkingLot(uint8_t x, uint8_t y){
+    gotoxy(x,y);
+    printf("╔═══════════════════════════════════════════════╗");
+    gotoxy(x,y+1);
+    printf("║           VAGAS DE ESTACIONAMENTO             ║");
+    gotoxy(x,y+2);
+    printf("║                                               ║");
+    gotoxy(x,y+3);
+    printf("║                                               ║");
+    gotoxy(x,y+4);
+    printf("║                                               ║");
+    gotoxy(x,y+5);
+    printf("║                                               ║");
+    gotoxy(x,y+6);
+    printf("║                                               ║");
+    gotoxy(x,y+7);
+    printf("║                                               ║");
+    gotoxy(x,y+8);
+    printf("║                                               ║");
+    gotoxy(x,y+9);
+    printf("║                                               ║");
+    gotoxy(x,y+10);
+    printf("║                                               ║");
+    gotoxy(x,y+11);
+    printf("║                                               ║");
+    gotoxy(x,y+12);
+    printf("║                                               ║");
+    gotoxy(x,y+13);
+    printf("║                                               ║");
+    gotoxy(x,y+14);
+    printf("╚═══════════════════════════════════════════════╝");
+}
 
 #endif  // _PRINT_H_
