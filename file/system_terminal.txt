@@ -1,0 +1,14 @@
+          ╔═════════════════╗
+══════════╣                 ║   HORÁRIO ATUAL:    
+   ■  ■ ■ │ ┌─┐┌─┐┌─┐┌─┐┌─┐ ║   TOTAL ARRECADADO: R$50000
+▄ ▄   ▄   ║ └▀┘└▀┘└▀┘└ ┘└▀┘ ║   CARROS ESTACIONADOS: 13/20   
+══════════╣                 ║   TOTAL DE CARROS ATENDIDOS: 100   
+          ║ ┌─┐┌─┐┌─┐┌─┐┌─┐ ║   CARRO NA CANCELA DE ENTRADA: JVW0H67   
+          ║ └▀┘└▀┘└ ┘└▀┘└▀┘ ║   CARRO NA CANCELA DE SAÍDA: YGD7C38   
+          ║                 ║   CARROS NA FILA DE ENTRADA: 5   
+          ║ ┌─┐┌─┐┌─┐┌─┐┌─┐ ║   CARROS NA FILA DE SAÍDA: 2   
+          ║ └ ┘└▀┘└▀┘└ ┘└▀┘ ║   
+══════════╣                 ║   
+■   ■   ■ │ ┌─┐┌─┐┌─┐┌─┐┌─┐ ║
+══════════╣ └▀┘└ ┘└▀┘└ ┘└ ┘ ║
+          ╚═════════════════╝
