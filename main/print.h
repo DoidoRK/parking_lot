@@ -57,7 +57,6 @@ void printGate( uint8_t x, uint8_t y, char* gate_name, uint8_t *car_plate, uint8
 }
 
 void printParkingSpot(uint8_t x, uint8_t y, uint8_t *car_plate, uint8_t is_empty){
-    // bool is_empty =  EMPTY == parking_spot.status ? 1 : 0;
     if(is_empty){
         setfontcolor(GREEN);
     } else {

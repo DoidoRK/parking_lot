@@ -27,7 +27,7 @@ static QueueHandle_t exit_queue = NULL;
 SemaphoreHandle_t parking_lot_semaphore;
 
 uint16_t total_cars = 0;
-uint8_t parked_cars_quantity = 0;
+uint8_t parked_cars = 0;
 uint32_t received_money = 0;
 car_t car_in_entrance_gate, car_in_exit_gate;
 
@@ -35,14 +35,14 @@ const parking_spot_t empty_parking_slot = {
     .status = EMPTY,
     .parked_car = {
         .time_parked = 0,
-        .plate = {32,32,32,32,32,32,32,32,32},
+        .plate = {32,32,32,32,32,32,32},
     },
 };
 const car_t empty_car = {
     .parking_spot = -1,
     .entrance_time = 0,
     .time_parked = 0,
-    .plate = {32,32,32,32,32,32,32,32,32},
+    .plate = {32,32,32,32,32,32,32},
 };
 
 parking_spot_t parking_lot[PARKING_LOT_CAPACITY];
@@ -59,7 +59,6 @@ static void carTask(void *arg){
     uint8_t in_parking_slot = 1;
     car_t *p_car = (car_t *)arg;
     vTaskDelay(pdMS_TO_TICKS(p_car->time_parked));
-    gotoxy(0,23);
     while (in_parking_slot)
     {
         if(pdTRUE == xQueueSend(exit_queue, p_car, pdMS_TO_TICKS(CAR_SPEED))){
@@ -72,6 +71,19 @@ static void carTask(void *arg){
     vTaskDelete(NULL);
 }
 
+static void parkingLotTask(void *arg){
+    xSemaphoreTake(parking_lot_semaphore, portMAX_DELAY);
+    for (size i = 0; i < PARKING_LOT_CAPACITY; i++)
+    {
+        parked_cars = 0;
+        if(parking_lot[i].status == OCCUPIED){
+            parked_cars++;
+        }
+    }
+    xSemaphoreGive(parking_lot_semaphore);
+    vTaskDelay(pdMS_TO_TICKS(PRINT_DELAY));
+}
+
 static void gpioReadTask(void* arg){
     uint32_t io_num;
     while(true) {
@@ -79,8 +91,13 @@ static void gpioReadTask(void* arg){
             gpio_isr_handler_remove(CAR_ENTERED_BTN);
             car_t new_car;
             initiateCar(&new_car);
-            if(!isQueueFull(entrance_queue)){
-                xQueueSend(entrance_queue, &new_car, pdMS_TO_TICKS(CAR_SPEED));
+            xSemaphoreTake(parking_lot_semaphore, portMAX_DELAY);
+            uint8_t empty_parking_spots = countFreeParkingSlots(parking_lot, PARKING_LOT_CAPACITY);
+            xSemaphoreGive(parking_lot_semaphore);
+            if(0 < empty_parking_spots){
+                if(!isQueueFull(entrance_queue)){
+                    xQueueSend(entrance_queue, &new_car, pdMS_TO_TICKS(CAR_SPEED));
+                }
             }
             vTaskDelay(pdMS_TO_TICKS(DEBOUNCING_TIME)); //Button press debouncing treatment.
             gpio_isr_handler_add(CAR_ENTERED_BTN, buttonISRHandler, (void*) CAR_ENTERED_BTN);
@@ -91,26 +108,18 @@ static void gpioReadTask(void* arg){
 static void entranceGateTask(void* arg){
     while(true) {
         if(xQueueReceive(entrance_queue, &car_in_entrance_gate, portMAX_DELAY)) {
+            car_in_entrance_gate.entrance_time = time(NULL);
+            vTaskDelay(pdMS_TO_TICKS(GATE_OPEN_TIME));
             xSemaphoreTake(parking_lot_semaphore, portMAX_DELAY);
-            uint8_t empty_parking_spots = countFreeParkingSlots(parking_lot, PARKING_LOT_CAPACITY);
+            int8_t parking_area_number = findFirstEmptyParkingSlotIndex(parking_lot, PARKING_LOT_CAPACITY);
+            car_in_entrance_gate.parking_spot = parking_area_number;
+            parking_lot[parking_area_number].status = OCCUPIED;
+            memcpy(&parking_lot[parking_area_number].parked_car, &car_in_entrance_gate, sizeof(car_t));
+            total_cars++;
             xSemaphoreGive(parking_lot_semaphore);
-            if(0 < empty_parking_spots){
-                car_in_entrance_gate.entrance_time = time(NULL);
-                vTaskDelay(pdMS_TO_TICKS(GATE_OPEN_TIME));
-                xSemaphoreTake(parking_lot_semaphore, portMAX_DELAY);
-                int8_t parking_area_number = findFirstEmptyParkingSlotIndex(parking_lot, PARKING_LOT_CAPACITY);
-                car_in_entrance_gate.parking_spot = parking_area_number;
-                parking_lot[parking_area_number].status = OCCUPIED;
-                memcpy(&parking_lot[parking_area_number].parked_car, &car_in_entrance_gate, sizeof(car_t));
-                parked_cars_quantity++;
-                total_cars++;
-                xSemaphoreGive(parking_lot_semaphore);
-                xTaskCreate(carTask, "carTask", 2048, &parking_lot[parking_area_number].parked_car, 2, NULL);
-                memcpy(&car_in_entrance_gate, &empty_car, sizeof(car_t));
-                vTaskDelay(pdMS_TO_TICKS(GATE_CLOSE_TIME));
-            } else {
-                memcpy(&car_in_entrance_gate, &empty_car, sizeof(car_t));
-            }
+            xTaskCreate(carTask, "carTask", 2048, &parking_lot[parking_area_number].parked_car, 2, NULL);
+            memcpy(&car_in_entrance_gate, &empty_car, sizeof(car_t));
+            vTaskDelay(pdMS_TO_TICKS(GATE_CLOSE_TIME));
         }
     }
 }
@@ -119,7 +128,7 @@ static void systemPrintTask(void* arg){
     uint8_t cars_in_entrance_queue = 0;
     uint8_t cars_in_exit_queue = 0;
     uint8_t empty_car_plate[CAR_PLATE_LENGTH];
-    for (size_t i = 0; i < CAR_PLATE_LENGTH; i++)
+    for (size_t i = 0; i < CAR_PLATE_LENGTH-1; i++)
     {
         empty_car_plate[i] = 32;
     }
@@ -131,11 +140,22 @@ static void systemPrintTask(void* arg){
 
         uint8_t entrance_gate_is_empty = !(memcmp(car_in_entrance_gate.plate,empty_car_plate,CAR_PLATE_LENGTH*sizeof(uint8_t))!= 0);
         uint8_t exit_gate_is_empty = !(memcmp(car_in_exit_gate.plate,empty_car_plate,CAR_PLATE_LENGTH*sizeof(uint8_t))!= 0);
-
+        for (size_t i = 0; i < PARKING_LOT_CAPACITY; i++)
+        {
+            int row = i % 5;
+            int col = i / 5;
+            uint8_t is_empty = (EMPTY == parking_lot[i].status);
+            printParkingSpot(
+                27+(row*9),
+                3+(col*3),
+                parking_lot[i].parked_car.plate,
+                is_empty
+            );
+        }
         printSystemTable(
             75,5,
             total_cars,
-            parked_cars_quantity,
+            parked_cars,
             PARKING_LOT_CAPACITY,
             car_in_entrance_gate.plate,
             car_in_exit_gate.plate,

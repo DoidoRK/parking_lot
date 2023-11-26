@@ -2,7 +2,7 @@
 #define _TYPES_H_
 
 #include <stdio.h>
-#define CAR_PLATE_LENGTH 9
+#define CAR_PLATE_LENGTH 8
 
 enum parking_slot_status {
     EMPTY,
