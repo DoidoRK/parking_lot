@@ -7,8 +7,8 @@
 #include "types.h"
 
 // Constants defining the range for random time generation
-#define MIN_TIME_SECONDS 5
-#define MAX_TIME_SECONDS 30
+#define MIN_TIME_SECONDS 10
+#define MAX_TIME_SECONDS 120
 
 
 // Function to generate a random time in milliseconds within a specified range
@@ -17,8 +17,7 @@ uint16_t generateRandomTime(uint8_t max_time_seconds,uint8_t min_time_seconds) {
     uint16_t randomSeconds = rand() % (max_time_seconds - min_time_seconds + 1) + min_time_seconds;
 
     // Convert seconds to milliseconds
-    // uint16_t randomMilliseconds = randomSeconds * 1000;
-    uint16_t randomMilliseconds = 2000;
+    uint16_t randomMilliseconds = randomSeconds * 1000;
 
     return randomMilliseconds;
 }
@@ -84,7 +83,9 @@ int8_t findFirstEmptyParkingSlotIndex(parking_spot_t* parking_lot, size_t capaci
 }
 
 uint32_t calculateParkingFee(uint16_t entrance_time, uint16_t exit_time, uint16_t time_fee){
-    return (uint32_t)((exit_time - entrance_time)%1000 * time_fee % 1000);
+    uint16_t time_spent = exit_time - entrance_time;
+    uint16_t fee_value = time_spent* time_fee;
+    return fee_value;
 }
 
 #endif  // _UTILS_H_

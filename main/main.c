@@ -76,10 +76,10 @@ static void carTask(void *arg){
 static void parkingLotTask(void *arg){
     while (true)
     {
+        parked_cars = 0;
         xSemaphoreTake(parking_lot_semaphore, portMAX_DELAY);
         for (size_t i = 0; i < PARKING_LOT_CAPACITY; i++)
         {
-            parked_cars = 0;
             if(parking_lot[i].status == OCCUPIED){
                 parked_cars++;
             }
@@ -133,11 +133,11 @@ static void entranceGateTask(void* arg){
 static void exitGateTask(void* arg){
     while(true) {
         if(xQueueReceive(exit_queue, &car_in_exit_gate, portMAX_DELAY)) {
-            receipt.entrance_time = car_in_exit_gate.entrance_time;
+            receipt.entrance_time = car_in_exit_gate.entrance_time + (GATE_OPEN_TIME%1000);
             receipt.exit_time = time(NULL);
             memcpy(receipt.car_plate, car_in_exit_gate.plate,CAR_PLATE_LENGTH*sizeof(uint8_t));
             receipt.total_time = receipt.exit_time - receipt.entrance_time;
-            receipt.value = calculateParkingFee(car_in_exit_gate.entrance_time,receipt.exit_time, TIME_FEE); 
+            receipt.value = calculateParkingFee(car_in_exit_gate.entrance_time, receipt.exit_time, TIME_FEE);
             total_money += receipt.value;
             vTaskDelay(pdMS_TO_TICKS(GATE_OPEN_TIME));
             memcpy(&car_in_exit_gate, &empty_car, sizeof(car_t));
@@ -175,7 +175,7 @@ static void systemPrintTask(void* arg){
             );
         }
         printSystemTable(
-            75,5,
+            75,2,
             total_cars,
             parked_cars,
             PARKING_LOT_CAPACITY,
