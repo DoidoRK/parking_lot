@@ -7,7 +7,7 @@
 #include "types.h"
 
 // Constants defining the range for random time generation
-#define MIN_TIME_SECONDS 10
+#define MIN_TIME_SECONDS 20
 #define MAX_TIME_SECONDS 120
 
 
